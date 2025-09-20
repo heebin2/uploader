@@ -20,7 +20,7 @@ public class ExtensionFilterController {
 
         var extensionFilterList = extensionFilterService.getExtensionFilter();
 
-        return ApiResponse.ok(ExtensionFilterListResponse.ExtensionFilterListResponse(extensionFilterList));
+        return ApiResponse.ok(ExtensionFilterListResponse.create(extensionFilterList));
     }
 
     @PostMapping

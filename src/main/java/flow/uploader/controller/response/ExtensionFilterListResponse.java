@@ -11,13 +11,13 @@ import java.util.List;
 @Builder(access = AccessLevel.PRIVATE)
 public class ExtensionFilterListResponse {
 
-    private final int maxCustomFilterCount;
+    private int maxCustomFilterCount;
 
     private List<ExtensionFilterResponse> fixedExtensionFilter;
 
     private List<ExtensionFilterResponse> customExtensionFilter;
 
-    public static ExtensionFilterListResponse ExtensionFilterListResponse(final ExtensionFilterList extensionFilterList) {
+    public static ExtensionFilterListResponse create(final ExtensionFilterList extensionFilterList) {
         return ExtensionFilterListResponse.builder()
                 .maxCustomFilterCount(extensionFilterList.getMaxCustomFilterCount())
                 .fixedExtensionFilter(extensionFilterList.getFixedExtensionFilter()

@@ -10,11 +10,11 @@ import java.util.List;
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class ExtensionFilterList {
 
-    private final int maxCustomFilterCount;
+    private int maxCustomFilterCount;
 
-    private final List<ExtensionFilter> fixedExtensionFilter;
+    private List<ExtensionFilter> fixedExtensionFilter;
 
-    private final List<ExtensionFilter> customExtensionFilter;
+    private List<ExtensionFilter> customExtensionFilter;
 
     public static ExtensionFilterList create(final int maxCustomFilterCount,
                                              final List<ExtensionFilter> fixedExtensionFilter,

@@ -9,11 +9,11 @@ import lombok.Getter;
 @Builder(access = AccessLevel.PRIVATE)
 public class FileInfoResponse {
 
-    private final String originFileName;
+    private String originFileName;
 
-    private final String extension;
+    private String extension;
 
-    private final String fileSize;
+    private String fileSize;
 
     public static FileInfoResponse create(final FileInfo fileInfo) {
         return FileInfoResponse.builder()

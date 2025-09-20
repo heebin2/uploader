@@ -34,33 +34,14 @@ public class ApiResponse<T> {
         this.code(ErrorCode.SUCCESS);
     }
 
-    public static ApiResponse<Void> builder() {
-        return new ApiResponse<>(null);
-    }
-
     public static <T> ApiResponse<T> builder(T data) {
         return new ApiResponse<>(data);
-    }
-
-    public static ApiResponse<Void> ok() {
-        return builder().code(ErrorCode.SUCCESS);
     }
 
     public static <T> ApiResponse<T> ok(T data) {
         return builder(data).code(ErrorCode.SUCCESS);
     }
 
-    public static <T> ApiResponse<T> ok(ErrorCode code, T data) {
-        return builder(data).code(code);
-    }
-
-    public static ApiResponse<Void> fail(ErrorCode code) {
-        return builder().code(code);
-    }
-
-    public static <T> ApiResponse<T> fail(ErrorCode code, T data) {
-        return builder(data).code(code);
-    }
 
     public static ApiResponse<String> fail(ErrorCode code, String message) {
         return builder(message).code(code).message(message);

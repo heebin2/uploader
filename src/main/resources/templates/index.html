@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>파일 확장자 차단 및 업로드</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .ext-list {
+            margin-bottom: 20px;
+        }
+
+        .ext-item {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .ext-btn {
+            margin-left: 5px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+    </style>
+</head>
+<body>
+<h2>파일 확장자 차단 및 업로드</h2>
+<div class="section">
+    <h3>고정 확장자</h3>
+    <div class="ext-list" id="fixed-ext-list"></div>
+</div>
+<div class="section">
+    <h3>커스텀 확장자</h3>
+    <input id="custom-ext-input" maxlength="20" placeholder="확장자 입력" type="text">
+    <button id="add-custom-ext">+추가</button>
+    <div style="border:1.5px solid #ccc; border-radius:8px; padding:12px; min-height:48px; margin-top:10px; position:relative; background:#fff;">
+        <div id="custom-ext-count" style="position:absolute; left:12px; top:8px; font-size:13px; color:#555;">
+            <!-- 갯수 표기 -->
+        </div>
+        <div class="ext-list" id="custom-ext-list" style="margin-top:22px;"></div>
+    </div>
+</div>
+<div class="section">
+    <h3>파일 업로드</h3>
+    <form enctype="multipart/form-data" id="uploadForm">
+        <input id="fileInput" name="file" required type="file">
+        <button type="submit">업로드</button>
+    </form>
+</div>
+<script>
+    function showErrorPopup(message) {
+        alert(message);
+    }
+
+    function isErrorCode(code) {
+        return code !== 0 && code !== "0";
+    }
+
+    function handleAjaxError(xhr) {
+        let msg = "서버 오류";
+        try {
+            const res = JSON.parse(xhr.responseText);
+            if (res && res.data && res.data.message) msg = res.data.message;
+            else if (res && res.message) msg = res.message;
+        } catch (e) {
+            console.error(e);
+        }
+        showErrorPopup(msg);
+    }
+
+    function loadExtensionFilters() {
+        $.get("/api/v1/extension/filter", function (res) {
+            if (isErrorCode(res.code)) {
+                showErrorPopup(res.message);
+                return;
+            }
+            const fixed = res.data.fixedExtensionFilter;
+            const custom = res.data.customExtensionFilter;
+            const maxCustomFilterCount = res.data.maxCustomFilterCount;
+            let fixedHtml = "";
+            fixed.forEach(ext => {
+                fixedHtml += `<span class='ext-item'>
+                <input type='checkbox' ${ext.useYn === "Y" ? "checked" : ""}
+                    onchange='toggleFixedExt(${ext.id}, this.checked)'>
+                ${ext.name}
+            </span>`;
+            });
+            $("#fixed-ext-list").html(fixedHtml);
+            let customHtml = "";
+            custom.forEach(ext => {
+                customHtml += `<span class='ext-item' style='border:1px solid #ccc;border-radius:4px;padding:2px 8px;display:inline-flex;align-items:center;margin-right:8px;'>
+                    <span>${ext.name}</span>
+                    <button class='ext-btn' style='background:none;border:none;color:#000;font-size:16px;cursor:pointer;padding:0;margin-left:4px;' onclick='removeCustomExt(${ext.id})'>✕</button>
+                </span>`;
+            });
+            $("#custom-ext-list").html(customHtml);
+            $("#custom-ext-count").text(`${custom.length} / ${maxCustomFilterCount}`);
+            // 추가 버튼 활성/비활성 처리
+            if (custom.length >= maxCustomFilterCount) {
+                $("#add-custom-ext").prop("disabled", true);
+            } else {
+                $("#add-custom-ext").prop("disabled", false);
+            }
+        }).fail(handleAjaxError);
+    }
+
+    function toggleFixedExt(id, checked) {
+        if (checked) {
+            enableExt(id);
+        } else {
+            disableExt(id);
+        }
+    }
+
+    function enableExt(id) {
+        $.ajax({
+            url: `/api/v1/extension/filter/${id}/enable`,
+            type: "PUT",
+            success: function (res) {
+                if (isErrorCode(res.code)) {
+                    showErrorPopup(res.message);
+                    return;
+                }
+                loadExtensionFilters();
+            },
+            error: handleAjaxError
+        });
+    }
+
+    function disableExt(id) {
+        $.ajax({
+            url: `/api/v1/extension/filter/${id}/disable`,
+            type: "PUT",
+            success: function (res) {
+                if (isErrorCode(res.code)) {
+                    showErrorPopup(res.message);
+                    return;
+                }
+                loadExtensionFilters();
+            },
+            error: handleAjaxError
+        });
+    }
+
+    function removeCustomExt(id) {
+        $.ajax({
+            url: `/api/v1/extension/filter/${id}`,
+            type: "DELETE",
+            success: function (res) {
+                if (isErrorCode(res.code)) {
+                    showErrorPopup(res.message);
+                    return;
+                }
+                loadExtensionFilters();
+            },
+            error: handleAjaxError
+        });
+    }
+
+    $("#add-custom-ext").click(function () {
+        const ext = $("#custom-ext-input").val();
+        if (!ext) return alert("확장자를 입력하세요.");
+        $.post("/api/v1/extension/filter", {extension: ext}, function (res) {
+            if (isErrorCode(res.code)) {
+                showErrorPopup(res.message);
+                return;
+            }
+            $("#custom-ext-input").val("");
+            loadExtensionFilters();
+        }).fail(handleAjaxError);
+    });
+    $("#uploadForm").submit(function (e) {
+        e.preventDefault();
+        var formData = new FormData(this);
+        $.ajax({
+            url: "/upload",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            success: function (res) {
+                if (isErrorCode(res.code)) {
+                    showErrorPopup(res.message);
+                    return;
+                }
+                // 성공 시 알럿으로 안내 및 정보 표기
+                const data = res.data;
+                alert(
+                    "업로드 성공!\n" +
+                    `파일 이름: ${data.originFileName}\n` +
+                    `확장자: ${data.extension}\n` +
+                    `파일 사이즈: ${data.fileSize}`
+                );
+            },
+            error: handleAjaxError
+        });
+    });
+    $(document).ready(loadExtensionFilters);
+</script>
+</body>
+</html>

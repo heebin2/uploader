@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: uploader
+  datasource:
+    url: jdbc:sqlite:db.sqlite
+    driver-class-name: org.sqlite.JDBC
+    username: 'user'
+    password: 'password'
+  jpa:
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: false
+  sql:
+    init:
+      mode: never
+      platform: sqlite
+      encoding: UTF-8

@@ -42,6 +42,6 @@ public class FileUploaderServiceImpl implements FileUploaderService {
             throw new ProcessException(ErrorCode.INVALID_FILE_NAME);
         }
 
-        return originalFileName.substring(originalFileName.lastIndexOf(".") + 1);
+        return originalFileName.substring(originalFileName.lastIndexOf(".") + 1).toLowerCase();
     }
 }

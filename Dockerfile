@@ -1,7 +1,9 @@
 # ARM64 호환 이미지 사용
 FROM eclipse-temurin:17-jdk AS build
 WORKDIR /build
+
 COPY . .
+
 RUN chmod +x ./gradlew
 RUN ./gradlew clean build --no-daemon
 
@@ -18,7 +20,9 @@ RUN apk --no-cache add tzdata curl sqlite \
     && echo "$TZ" > /etc/timezone \
     && apk del tzdata
 
+COPY --from=build /build/script/data.sql /app/data.sql
 COPY --from=build /build/build/libs/*.jar /app/app.jar
-COPY script/data.sql /app/data.sql
 
-ENTRYPOINT ["sh", "-c", "if [ ! -f /app/db.sqlite ]; then sqlite3 /app/db.sqlite < /app/data.sql; fi && java -jar /app/app.jar"]
+RUN sqlite3 /app/db.sqlite < /app/data.sql
+
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
